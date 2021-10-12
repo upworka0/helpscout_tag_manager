@@ -1,4 +1,6 @@
-.chalice/
+.chalice/deployed
+.chalice/deployments
+.chalice/config.json
 .env
 .idea
 __pycache__/

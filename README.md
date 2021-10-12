@@ -1,5 +1,5 @@
 # helpscout_tag_manager
-This helper is to add custom tag to the all conversations by query and extract Email report data on Helpscout. 
+This helper is to add custom tag to the all conversations by query and extract Email report data on Helpscout.<br> 
 This project is using python-helpscout-v2, selenium and chalice python packages and deployed as AWS lambda function.
      
 ## Testing
