@@ -1,1 +1,7 @@
 python-helpscout-v2
+boto3==1.14.43
+sendgrid==6.5.0
+pytz==2020.1
+bugsnag
+selenium
+python-dateutil
