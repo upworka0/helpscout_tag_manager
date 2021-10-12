@@ -1,3 +1,8 @@
+"""
+This Helper allows you to download Email report page on Helpscout as pdf format
+and send email with it via Python.
+"""
+
 import os
 import boto3
 import base64
@@ -10,19 +15,32 @@ from PIL import Image
 from io import BytesIO
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, FileType, Disposition)
-import datetime
 
 
+# Retrieving env variables
 bucket_name = os.environ.get('BUCKET_NAME')
-s3 = boto3.client('s3')
 user_name = os.environ.get('ACCOUNT_USERNAME')
 password = os.environ.get('ACCOUNT_PASSWORD')
 sendgrid_key = os.environ.get('SENDGRID_KEY')
 
+s3 = boto3.client('s3')
+
 
 class WebDriver:
+    """
+        Wrapper to take the screenshot of email report page on Helpscout, convert it to pdf and send email with it
+    """
 
-    def __init__(self, recipient_list, sender):
+    def __init__(self, recipient_list, sender, app):
+        """
+        Constructor of Wrapper
+
+        :param recipient_list: array : recipients' email list
+        :param sender: string:  sender email
+        :param app: Chalice app for logging
+        """
+        self.app = app
+
         self.recipient_list = recipient_list
         self.sender = sender
 
@@ -37,23 +55,33 @@ class WebDriver:
 
         self.driver = Chrome('/opt/chromedriver', options=self.options)
 
-    # login process
+    # login process via chrome driver
     def login_process(self):
-        print("Logging in now...")
+        self.app.log.info("Logging in now...")
         self.driver.get('https://secure.helpscout.net/')
         self.driver.find_element_by_id("email").send_keys(user_name)
         self.driver.find_element_by_id("password").send_keys(password)
         self.driver.find_element_by_id("logInButton").click()
 
     def take_screen(self):
+        """
+        Takes the whole screen of page as png format
+        :return: Byte
+        """
         S = lambda X: self.driver.execute_script('return document.body.parentNode.scroll' + X)
         self.driver.set_window_size(S('Width'), S('Height'))
         return self.driver.find_element_by_id('report-wrap').screenshot_as_png
 
     def send_email_with_pdf(self, pdf_data, pdf_key):
-        print('Email sending ...')
-        print('Recipient_list ...')
-        print(self.recipient_list)
+        """
+        Sends email to recipients
+        :param pdf_data: Byte
+        :param pdf_key: string
+        :return: dict
+        """
+        self.app.log.info('Email sending ...')
+        self.app.log.info('Recipient_list ...')
+        self.app.log.info(self.recipient_list)
         try:
             message = Mail(
                 from_email=self.sender,
@@ -75,23 +103,31 @@ class WebDriver:
             sg = SendGridAPIClient(sendgrid_key)
             response = sg.send(message)
 
-            print(response.status_code)
-            print(response.body)
-            print('Success --- END')
+            self.app.log.info(response.status_code)
+            self.app.log.info(response.body)
+            self.app.log.info('Success --- END')
             return {
                 'status': 200,
                 'key': pdf_key
             }
 
         except Exception as e:
-            print("Error from sending email:" + str(e))
+            self.app.log.info("Error from sending email:" + str(e))
             return {
                 'code': 400,
                 'status': 'error',
                 'error_msg': "Error from sending email:" + str(e)
             }
 
-    def download_report_as_pdf(self, tag_id, date_from, date_to):
+    def process(self, tag_id, date_from, date_to):
+        """
+        Main process step: Login to helpscout website, visit Email report page, take screenshot, convert it pdf format
+        and sending email with it to the all recipients.
+        :param tag_id: int : the id of custom tag
+        :param date_from: string
+        :param date_to: string
+        :return: dict
+        """
         self.login_process()
         res = {}
         try:
@@ -99,11 +135,11 @@ class WebDriver:
                 EC.presence_of_element_located((By.ID, "pageTitle"))  # This is a dummy element
             )
         finally:
-            print("Successfully logged in")
+            self.app.log.info("Successfully logged in")
             link = 'https://secure.helpscout.net/reports/email/?tab=responseTime&officeHours=true&channelType=email&' \
                    'rows[]=tags:{}&startDate={}&endDate={}&cmpRange=-1&cmpStartDate=&cmpEndDate='.\
                 format(tag_id, date_from, date_to)
-            print(link)
+            self.app.log.info(link)
             self.driver.get(link)
 
             img = Image.open(BytesIO(self.take_screen()))
@@ -112,13 +148,12 @@ class WebDriver:
             in_mem_file = BytesIO()
             img.save(in_mem_file, format="PDF", quality=100)
 
-            # send email with attaching pdf
-
             # in_mem_file.seek(0)
             # s3.put_object(Bucket=bucket_name,
             #               Key='email_pdfs/{}-{}-{}.pdf'.format(tag_id, date_from, date_to),
             #               Body=in_mem_file)
 
+            # send email with attaching pdf
             res = self.send_email_with_pdf(in_mem_file, '{} -- {}-{}.pdf'.format(date_from, date_to, tag_id))
 
         self.driver.quit()

@@ -1,23 +1,25 @@
 import os
 from chalice import Chalice
-from helpscout import HelpScout
+import logging
 from chalicelib.helpscout_tag_manager import TagManager
 from chalicelib.pdf_downloader import WebDriver
 from dateutil import parser
-from datetime import datetime
 
 
 app = Chalice(app_name='helpscout')
+# Enable DEBUG logs.
+app.log.setLevel(logging.DEBUG)
+
+
+# get Env variables
 app_id = os.environ.get('APP_ID')
 app_secret = os.environ.get('APP_SECRET')
-helpscout_client = HelpScout(app_id=app_id, app_secret=app_secret)
-helpscout_client._authenticate()
 
 
 # convert datetime to ISO format for api request
 def convert_ISO_format(dt):
     date_time = parser.parse(dt)
-    return date_time.replace(microsecond=0).isoformat()
+    return date_time.replace(microsecond=0).isoformat() + 'Z'
 
 
 @app.route('/', methods=['POST'])
@@ -40,11 +42,11 @@ def index():
     tag_name = request_body.get('tag_name')
 
     try:
-        manager = TagManager(helpscout_client)
+        manager = TagManager(app_id=app_id, app_secret=app_secret, app=app)
         tag_id = manager.process(tag_name, date_from=convert_ISO_format(date_from), date_to=convert_ISO_format(date_to))
 
-        driver = WebDriver(sender=sender, recipient_list=recipient_list)
-        return driver.download_report_as_pdf(tag_id=tag_id, date_from=date_from, date_to=date_to)
+        driver = WebDriver(sender=sender, recipient_list=recipient_list, app=app)
+        return driver.process(tag_id=tag_id, date_from=date_from, date_to=date_to)
 
     except Exception as e:
         return {
