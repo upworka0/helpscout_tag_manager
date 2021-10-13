@@ -94,7 +94,8 @@ class TagManager:
         :return: int
         """
         self.tag_name = tag_name
-        params = 'query={} waitingSince:[{} TO {}]&status=all'.format(self.tag_name, date_from, date_to)
+        # params = 'query={} waitingSince:[{} TO {}]&status=all'.format(self.tag_name, date_from, date_to)
+        params = 'query={}&status=all'.format(self.tag_name)
         self.app.log.info(params)
         conversations = self.helpscout_client.conversations.get(params=params)
         self.app.log.info("Conversation count is {}".format(len(conversations)))

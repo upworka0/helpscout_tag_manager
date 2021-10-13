@@ -136,7 +136,7 @@ class WebDriver:
             )
         finally:
             self.app.log.info("Successfully logged in")
-            link = 'https://secure.helpscout.net/reports/email/?tab=responseTime&officeHours=true&channelType=email&' \
+            link = 'https://secure.helpscout.net/reports/email/?tab=responseTime&officeHours=false&channelType=email&' \
                    'rows[]=tags:{}&startDate={}&endDate={}&cmpRange=-1&cmpStartDate=&cmpEndDate='.\
                 format(tag_id, date_from, date_to)
             self.app.log.info(link)

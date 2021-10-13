@@ -12,7 +12,7 @@
     "BUGSNAG_KEY": "",
     "BUCKET_NAME": ""
   },
-  "lambda_timeout": 400,
+  "lambda_timeout": 600,
   "lambda_memory_size": 3200,
   "layers": ["arn:aws:lambda:us-west-1:333410091315:layer:selenium_env:1", "arn:aws:lambda:us-west-1:113088814899:layer:Klayers-python37-Pillow:11"],
   "stages": {
