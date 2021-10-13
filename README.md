@@ -13,4 +13,7 @@ This project is using python-helpscout-v2, selenium and chalice python packages 
             "recipient_list": ["upworka0@gmail.com"],
             "sender": "upworka0@gmail.com"
         }
-    
+    - The request header
+        {
+            "x-api-key":"XXXXXXX"
+        }
