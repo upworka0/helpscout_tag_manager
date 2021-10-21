@@ -15,6 +15,7 @@ from PIL import Image
 from io import BytesIO
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, FileType, Disposition)
+from datetime import datetime, timedelta
 
 
 # Retrieving env variables
@@ -119,8 +120,7 @@ class WebDriver:
                 'error_msg': "Error from sending email:" + str(e)
             }
 
-
-    def create_image(link):
+    def create_image(self, link):
         """
             Create Image object from webdriver with link and convert it to RGB format
         """
@@ -129,7 +129,6 @@ class WebDriver:
         img = Image.open(BytesIO(self.take_screen()))
 
         return img.convert('RGB')
-
 
     def process(self, tag_id):
         """
@@ -151,13 +150,13 @@ class WebDriver:
         finally:
             self.app.log.info("Successfully logged in")
             link1 = 'https://secure.helpscout.net/reports/email/?tab=responseTime&officeHours=false&channelType=email&' \
-                   'rows[]=tags:{}&startDate=1900-01-01&endDate={}&cmpRange=-1&cmpStartDate=&cmpEndDate='.\
+                    'rows[]=tags:{}&startDate=1900-01-01&endDate={}&cmpRange=-1&cmpStartDate=&cmpEndDate='. \
                 format(tag_id, date_to)
 
             img1 = self.create_image(link1)
 
             link2 = 'https://secure.helpscout.net/reports/email/?tab=responseTime&officeHours=false&channelType=email&' \
-                   'rows[]=tags:{}&startDate={}&endDate={}&cmpRange=-1&cmpStartDate=&cmpEndDate='.\
+                    'rows[]=tags:{}&startDate={}&endDate={}&cmpRange=-1&cmpStartDate=&cmpEndDate='. \
                 format(tag_id, start_30_date, date_to)
             img2 = self.create_image(link2)
 

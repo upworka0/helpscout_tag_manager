@@ -43,7 +43,7 @@ def index():
 
     try:
         manager = TagManager(app_id=app_id, app_secret=app_secret, app=app)
-        tag_id = manager.process(tag_name, date_from=convert_ISO_format(date_from), date_to=convert_ISO_format(date_to))
+        tag_id = manager.process(tag_name)
 
         driver = WebDriver(sender=sender, recipient_list=recipient_list, app=app)
         return driver.process(tag_id=tag_id, date_to=date_to)
