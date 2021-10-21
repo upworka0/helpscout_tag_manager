@@ -119,7 +119,19 @@ class WebDriver:
                 'error_msg': "Error from sending email:" + str(e)
             }
 
-    def process(self, tag_id, date_from, date_to):
+
+    def create_image(link):
+        """
+            Create Image object from webdriver with link and convert it to RGB format
+        """
+        self.app.log.info(link)
+        self.driver.get(link)
+        img = Image.open(BytesIO(self.take_screen()))
+
+        return img.convert('RGB')
+
+
+    def process(self, tag_id):
         """
         Main process step: Login to helpscout website, visit Email report page, take screenshot, convert it pdf format
         and sending email with it to the all recipients.
@@ -128,6 +140,8 @@ class WebDriver:
         :param date_to: string
         :return: dict
         """
+        start_30_date = (datetime.now() - timedelta(30)).strftime('%Y-%m-%d')
+        date_to = datetime.now().strftime('%Y-%m-%d')
         self.login_process()
         res = {}
         try:
@@ -136,17 +150,19 @@ class WebDriver:
             )
         finally:
             self.app.log.info("Successfully logged in")
-            link = 'https://secure.helpscout.net/reports/email/?tab=responseTime&officeHours=false&channelType=email&' \
-                   'rows[]=tags:{}&startDate={}&endDate={}&cmpRange=-1&cmpStartDate=&cmpEndDate='.\
-                format(tag_id, date_from, date_to)
-            self.app.log.info(link)
-            self.driver.get(link)
+            link1 = 'https://secure.helpscout.net/reports/email/?tab=responseTime&officeHours=false&channelType=email&' \
+                   'rows[]=tags:{}&startDate=1900-01-01&endDate={}&cmpRange=-1&cmpStartDate=&cmpEndDate='.\
+                format(tag_id, date_to)
 
-            img = Image.open(BytesIO(self.take_screen()))
-            if img.mode == 'RGBA':
-                img = img.convert('RGB')
+            img1 = self.create_image(link1)
+
+            link2 = 'https://secure.helpscout.net/reports/email/?tab=responseTime&officeHours=false&channelType=email&' \
+                   'rows[]=tags:{}&startDate={}&endDate={}&cmpRange=-1&cmpStartDate=&cmpEndDate='.\
+                format(tag_id, start_30_date, date_to)
+            img2 = self.create_image(link2)
+
             in_mem_file = BytesIO()
-            img.save(in_mem_file, format="PDF", quality=100)
+            img1.save(in_mem_file, format="PDF", quality=100, save_all=True, append_images=[img2])
 
             # in_mem_file.seek(0)
             # s3.put_object(Bucket=bucket_name,

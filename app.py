@@ -46,7 +46,7 @@ def index():
         tag_id = manager.process(tag_name, date_from=convert_ISO_format(date_from), date_to=convert_ISO_format(date_to))
 
         driver = WebDriver(sender=sender, recipient_list=recipient_list, app=app)
-        return driver.process(tag_id=tag_id, date_from=date_from, date_to=date_to)
+        return driver.process(tag_id=tag_id, date_to=date_to)
 
     except Exception as e:
         return {
