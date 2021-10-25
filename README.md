@@ -12,14 +12,14 @@ Reference <br>
         
     - The request header
         {
-            "x-api-key":"XXXXXXX"
+            "x-api-key":"XXXXX"
         }
     - The request payload should be like this.
         {
             "date_from":"2020-10-01",
             "date_to": "2021-09-30",
             "tag_name": "butlercc.edu",
-            "recipient_list": ["upworka0@gmail.com"],
-            "sender": "upworka0@gmail.com"
+            "recipient_list": ["xxx@gmail.com"],
+            "sender": "xxxx@gmail.com"
         }
     
